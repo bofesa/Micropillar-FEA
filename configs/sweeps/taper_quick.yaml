@@ -1,0 +1,18 @@
+# Taper x contact screening sweep (24 cases, ~30-40 min on 12 cores).
+# Validation-base material (h/D = 2, sigma_y/E = 0.02, Et/E = 0.05, nu = 0.3), D_top = 1 µm,
+# 100 nm foot fillet. 0 deg is included as the baseline (separates end-constraint effects).
+base: ../validation_base.yaml
+fixed:
+  geometry.fillet_radius: 0.1
+  substrate.type: elastic
+  loading.n_increments: 100       # converged to ~3e-5 in C (validation V5)
+grid:
+  geometry.taper_deg: [0, 0.5, 1, 2, 3, 5]
+  contact:
+    - {top: frictionless}
+    - {top: coulomb, mu: 0.1}
+    - {top: coulomb, mu: 0.3}
+    - {top: bonded}
+jobs: 3
+threads_per_job: 4
+output: results/sweeps/taper_quick.csv

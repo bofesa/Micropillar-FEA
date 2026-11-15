@@ -1,0 +1,3 @@
+build,mode,linear_solver,threads,path,runs,ok,failures,median_wall_s
+msys2-clangarm64/bin/ccx.exe,native,spooles,4,%LOCALAPPDATA%\pillarfea\ccx\msys2-clangarm64\bin\ccx.exe,4,1,3,57.7
+CalculiX-2.23.0-win-x64/bin/ccx_MT.exe,emulated,spooles,4,%LOCALAPPDATA%\pillarfea\ccx\CalculiX-2.23.0-win-x64\bin\ccx_MT.exe,4,4,0,194.85

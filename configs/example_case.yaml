@@ -1,0 +1,15 @@
+# Example single case: only keys that differ from pillarfea/defaults.yaml are needed.
+geometry:
+  D_top: 1.0
+  h_over_D: 2.0
+  taper_deg: 3.0
+material:
+  sigma_y_over_E: 0.02
+  hardening: {type: linear, Et_over_E: 0.05}
+substrate:
+  type: elastic
+contact:
+  top: frictionless
+analysis:
+  method: offset
+  offset_strain: 0.002

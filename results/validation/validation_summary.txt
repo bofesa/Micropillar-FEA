@@ -1,0 +1,37 @@
+[PASS] V1 cylinder/rigid base reproduces ideal geometry: C = 1.00000
+[PASS] V1 force equilibrium: max |F_punch - F_support| / F = 0.00e+00
+[PASS] V1 ideal-geometry FE vs analytical finite-strain estimate: sigma_0.2: FE 2041.1 MPa, analytic 2041.3 MPa (-0.01 %)
+     input-law sigma at 0.2% plastic strain = 2010.5 MPa; ideal-geometry engineering sigma_0.2 = 2041.1 MPa (compression: F/A0 > true stress)
+[PASS] V2 cylinder on elastic substrate: C_raw = 1.00065, C_sneddon = 1.00065, C_fe_base = 1.00136
+[PASS] V2 force equilibrium: 9.85e-08
+     apparent modulus: raw 75304, Sneddon-corrected 103029, FE-foot-corrected 102835, ideal 101304 MPa
+     taper table (C_raw; apparent overestimate = C - 1):
+     taper  rigid/fricless  rigid/bonded  subst/fricless  subst/bonded  subst/fricless C_fe_base   1D
+      0.0  1.0000 ( -0.0%)  1.0009 ( +0.1%)  1.0007 ( +0.1%)  1.0020 ( +0.2%)  1.0014   1.0000 ( -0.0%)
+      1.0  1.0436 ( +4.4%)  1.0588 ( +5.9%)  1.0413 ( +4.1%)  1.0564 ( +5.6%)  1.0426   1.0333 ( +3.3%)
+      2.0  1.0712 ( +7.1%)  1.0978 ( +9.8%)  1.0691 ( +6.9%)  1.0955 ( +9.6%)  1.0704   1.0494 ( +4.9%)
+      3.0  1.0963 ( +9.6%)  1.1321 (+13.2%)  1.0944 ( +9.4%)  1.1299 (+13.0%)  1.0957   1.0619 ( +6.2%)
+      5.0  1.1438 (+14.4%)  1.1927 (+19.3%)  1.1422 (+14.2%)  1.1907 (+19.1%)  1.1433   1.0820 ( +8.2%)
+[PASS] V3 equilibrium 0.0 deg: 0.0e+00
+[PASS] V3 equilibrium 1.0 deg: 4.8e-06
+[PASS] V3 equilibrium 2.0 deg: 8.5e-07
+[PASS] V3 equilibrium 3.0 deg: 8.0e-07
+[PASS] V3 equilibrium 5.0 deg: 7.2e-07
+     mesh frictionless: n=8: C=1.09431, n=12: C=1.09442, n=16: C=1.09443, n=24: C=1.09449
+[PASS] V4 mesh convergence (frictionless), n=16 vs n=24: |dC| = 6.8e-05
+     mesh bonded: n=8: C=1.13075, n=12: C=1.13017, n=16: C=1.12988, n=24: C=1.12968
+[PASS] V4 mesh convergence (bonded), n=16 vs n=24: |dC| = 2.0e-04
+     inc: 50: C=1.09410, E_app=91099, 100: C=1.09440, E_app=91101, 200: C=1.09443, E_app=91100, 400: C=1.09442, E_app=91106
+[PASS] V5/6 inc sensitivity (last two): |dC| = 8.6e-06
+     sub: 20: C=1.09442, E_app=91500, 40: C=1.09443, E_app=91100, 80: C=1.09443, E_app=90901
+[PASS] V5/6 sub sensitivity (last two): |dC| = 7.6e-06
+     Coulomb contact (3°, elastic substrate, penalty factor 100): μ=0: C=1.09359, μ=0.1: C=1.12337, μ=0.3: C=1.12911, μ=5: C=1.12941
+[PASS] V7 Coulomb μ=0 vs exact frictionless: 1.09359 vs 1.09443 (-8.3e-04)
+[PASS] V7 Coulomb μ=5 vs exact bonded: 1.12941 vs 1.12988 (-4.7e-04)
+[PASS] V7 C non-decreasing with μ: 1.09359, 1.12337, 1.12911, 1.12941
+     penalty sensitivity (μ=0): factor 10: C=1.09126, factor 100: C=1.09359, factor 1000: C=1.09382
+[PASS] V7 penalty factor 100 vs 1000: |dC| = 2.3e-04
+[PASS] V7 stick slope 0.01 K vs 0.1 K (μ=0.1): dC = +0.0e+00
+     fillet (3°, frictionless, D_top = 1 µm): r=0 µm: C=1.09443, r=0.05 µm: C=1.09445, r=0.1 µm: C=1.09476, r=0.2 µm: C=1.09527
+     fillet 0.1 µm mesh: n=12: C=1.09473, n=16: C=1.09476, n=24: C=1.09477
+[PASS] V8 mesh convergence with fillet, n=16 vs n=24: |dC| = 1.4e-05

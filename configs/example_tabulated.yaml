@@ -1,0 +1,11 @@
+# Example with a tabulated hardening curve (true stress / sigma_y vs. true plastic strain).
+# Beyond the last point the curve is extended with the slope of the last segment.
+geometry:
+  taper_deg: 2.0
+material:
+  E: 200000.0
+  sigma_y_over_E: 0.005
+  hardening:
+    type: table
+    plastic_strain:      [0.0, 0.002, 0.005, 0.01, 0.02, 0.05, 0.10]
+    stress_over_sigma_y: [1.0, 1.04,  1.08,  1.13, 1.20, 1.32, 1.45]

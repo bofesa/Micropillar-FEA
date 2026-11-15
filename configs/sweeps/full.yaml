@@ -1,0 +1,26 @@
+# Full factorial sweep: 6 tapers x 3 aspect ratios x 4 contact conditions x 3 x 3 materials
+# = 648 cases. Frictionless/bonded ~1.5 min, Coulomb ~3 min per case with 100 increments and
+# 3 cases in parallel -> roughly 8-10 h on a 12-core laptop (keep it awake / plugged in).
+# Results are cached, so an interrupted sweep resumes where it stopped when re-run.
+# D_top = 1.5 µm with a 100 nm foot fillet; nu = 0.3 (change in `fixed` if needed).
+# C is saved for every case in the CSV; fitting a function to it is left to the user.
+base: ../validation_base.yaml
+fixed:
+  geometry.D_top: 1.5
+  geometry.fillet_radius: 0.1
+  material.nu: 0.3
+  substrate.type: elastic
+  loading.n_increments: 100
+grid:
+  geometry.taper_deg: [0, 0.5, 1, 2, 3, 5]
+  contact:
+    - {top: frictionless}
+    - {top: coulomb, mu: 0.1}
+    - {top: coulomb, mu: 0.3}
+    - {top: bonded}
+  geometry.h_over_D: [1.5, 2, 3]
+  material.hardening.Et_over_E: [0.02, 0.05, 0.10]
+  material.sigma_y_over_E: [0.005, 0.01, 0.02]
+jobs: 3
+threads_per_job: 4
+output: results/sweeps/full.csv

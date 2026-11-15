@@ -1,0 +1,9 @@
+build,arch,mode,linear_solver,threads,repeat,path,wall_s,C_raw,sigma_app_raw,status
+msys2-clangarm64/bin/ccx.exe,arm64,native,spooles,4,0,%LOCALAPPDATA%\pillarfea\ccx\msys2-clangarm64\bin\ccx.exe,57.7,0.91372014,2233.7839,ok
+msys2-clangarm64/bin/ccx.exe,arm64,native,spooles,4,1,%LOCALAPPDATA%\pillarfea\ccx\msys2-clangarm64\bin\ccx.exe,6.6,,,CcxCrash: CalculiX crashed 1 times in %LOCALAPPDATA%\pillarfea\bench\msys2-clangarm64_bin_ccx.ex
+msys2-clangarm64/bin/ccx.exe,arm64,native,spooles,4,2,%LOCALAPPDATA%\pillarfea\ccx\msys2-clangarm64\bin\ccx.exe,5.3,,,CcxCrash: CalculiX crashed 1 times in %LOCALAPPDATA%\pillarfea\bench\msys2-clangarm64_bin_ccx.ex
+msys2-clangarm64/bin/ccx.exe,arm64,native,spooles,4,3,%LOCALAPPDATA%\pillarfea\ccx\msys2-clangarm64\bin\ccx.exe,6,,,CcxCrash: CalculiX crashed 1 times in %LOCALAPPDATA%\pillarfea\bench\msys2-clangarm64_bin_ccx.ex
+CalculiX-2.23.0-win-x64/bin/ccx_MT.exe,x64,emulated,spooles,4,0,%LOCALAPPDATA%\pillarfea\ccx\CalculiX-2.23.0-win-x64\bin\ccx_MT.exe,149.3,0.91372014,2233.7839,ok
+CalculiX-2.23.0-win-x64/bin/ccx_MT.exe,x64,emulated,spooles,4,1,%LOCALAPPDATA%\pillarfea\ccx\CalculiX-2.23.0-win-x64\bin\ccx_MT.exe,183,0.91372014,2233.7839,ok
+CalculiX-2.23.0-win-x64/bin/ccx_MT.exe,x64,emulated,spooles,4,2,%LOCALAPPDATA%\pillarfea\ccx\CalculiX-2.23.0-win-x64\bin\ccx_MT.exe,206.7,0.91372014,2233.7839,ok
+CalculiX-2.23.0-win-x64/bin/ccx_MT.exe,x64,emulated,spooles,4,3,%LOCALAPPDATA%\pillarfea\ccx\CalculiX-2.23.0-win-x64\bin\ccx_MT.exe,209.5,0.91372014,2233.7839,ok

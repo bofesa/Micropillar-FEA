@@ -1,0 +1,69 @@
+# Default parameters for pillarfea.
+# Units: lengths in µm, stresses in MPa, forces in µN.
+# A user config only needs to contain the keys it changes.
+
+geometry:
+  D_top: 1.5              # top diameter [µm] (results are scale-invariant)
+  h_over_D: 2.0           # pillar height / top diameter
+  taper_deg: 3.0          # sidewall angle from the pillar axis [deg]; D_bot = D_top + 2 h tan(taper)
+  fillet_radius: 0.1      # foot fillet radius [µm], tangent to sidewall and substrate
+                          # (0 = sharp re-entrant corner; ~0.1 µm is typical after FIB milling)
+
+material:                 # pillar material (true stress vs. true plastic strain)
+  E: 120000.0             # Young's modulus [MPa]
+  nu: 0.34
+  sigma_y_over_E: 0.0025    # initial yield stress / E
+  hardening:
+    type: linear          # linear | table
+    Et_over_E: 0.01       # linear: tangent modulus of the uniaxial curve / E
+    plastic_strain: null          # table: plastic strain values, first must be 0
+    stress_over_sigma_y: null     # table: flow stress / sigma_y, first must be 1
+
+substrate:
+  type: elastic           # none (rigid, frictionless base) | elastic | elastoplastic (pillar hardening law)
+  E: 130000               # null = same as pillar (default: Si 001)
+  nu: 0.28                # null = same as pillar (default: Si 001)
+  radius_over_D: 40.0     # radius of the hemispherical substrate domain / D_top (outer surface fixed)
+
+contact:
+  top: bonded       # frictionless | bonded | coulomb
+  mu: 0.0                 # coulomb: friction coefficient (0 = frictionless contact algorithm)
+  penalty_factor: 100.0   # coulomb: normal penalty K = factor * E / (smallest top-face node spacing)
+                          # (validated: mu=0 reproduces the exact frictionless C to 0.08 %)
+  stick_ratio: 0.1        # coulomb: stick slope lambda = ratio * K (written to *FRICTION; NOTE:
+                          # ccx 2.23 face-to-face contact showed no response to it, see README)
+  punch_E_factor: 1000.0  # coulomb: punch = elastic block, E_punch = factor * E, nu = 0 (~rigid)
+
+loading:
+  max_strain: auto        # final nominal strain (punch displacement / h); auto = 2.5 sigma_y/E + 0.015
+  n_increments: 200       # equal displacement increments
+  n_field_frames: 25      # evenly spaced full-field frames kept for contour plots
+
+mesh:
+  n_radial: 16            # elements across the pillar radius
+  radial_bias: 1.2        # >0 refines towards the pillar surface
+  n_axial: auto           # elements along the height; auto ~ 0.6 * n_radial * h / R_top
+  axial_bias: 1.5         # >0 refines towards top and foot
+  n_sub_inner: auto       # element layers in the substrate block under the pillar; auto = n_radial / 2
+  sub_inner_depth: 1.0    # depth of that block / foot radius
+  n_ring: 24              # radial element layers from that block to the outer substrate boundary
+
+analysis:
+  method: offset          # offset | bilinear (elastic-plastic two-line fit)
+  offset_strain: 0.002    # offset for the offset method (0.002 = 0.2 %)
+  slope: fit              # fit (slope fitted to the loading curve) | material (input E)
+  slope_window: [0.1, 0.5]      # elastic-fit window, as fractions of sigma_y (nominal stress)
+  bilinear_max_strain: auto     # upper strain limit of the bilinear fit; auto = 2 sigma_y/E + 0.01
+  prop_limit_tol: 0.005   # relative deviation from the elastic line defining the proportional limit
+
+solver:
+  executable: auto        # path to ccx(.exe); auto = benchmark profile if present, else first native
+                          # build, else an emulated one (see `python -m pillarfea.platform_info`)
+  threads: auto           # auto = benchmark profile, else 4
+  linear_solver: auto     # auto (benchmark profile, else spooles) | spooles | pastix |
+                          # iterative cholesky | default (ccx's own choice)
+                          # (PaStiX crashes in the MSYS2 ARM64 build, see README)
+  work_dir: auto          # auto = %LOCALAPPDATA%/pillarfea/runs (kept out of OneDrive)
+  timeout_s: 3600
+  max_attempts: 3         # re-run a case if CalculiX crashes without an error message
+  keep_frd: false         # keep CalculiX's full .frd result file (~0.5 MB per increment)
