@@ -115,3 +115,14 @@ def test_frd_number_parsing_windows_and_linux():
 
 def test_von_mises_uniaxial():
     assert von_mises(np.array([0.0, -100.0, 0.0, 0.0])) == pytest.approx(100.0)
+
+
+def test_all_sources_compile_and_ui_imports():
+    """Catch syntax errors in modules not exercised by other tests (UI, scripts)."""
+    import importlib
+    import py_compile
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    for f in list((root / "pillarfea").glob("*.py")) + list((root / "scripts").glob("*.py")):
+        py_compile.compile(str(f), doraise=True)
+    importlib.import_module("pillarfea.ui")

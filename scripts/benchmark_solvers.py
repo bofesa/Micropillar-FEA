@@ -28,13 +28,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from pillarfea.config import load_config, resolve  # noqa: E402
-from pillarfea.platform_info import discover_solvers, host_arch, portable, save_profile  # noqa: E402
+from pillarfea.platform_info import awake, discover_solvers, host_arch, portable, save_profile  # noqa: E402
 from pillarfea.simulate import analyse, run_fe, run_reference  # noqa: E402
 from pillarfea.sweep import write_csv  # noqa: E402
 
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--allow-sleep", action="store_true", help="let the computer sleep during the run (default: sleep is blocked)")
     ap.add_argument("--threads", type=int, nargs="*", default=[1, 4])
     ap.add_argument("--solvers", nargs="*", default=["spooles", "pastix"])
     ap.add_argument("--repeats", type=int, default=3)
@@ -123,4 +124,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with awake("--allow-sleep" not in sys.argv):
+        main()

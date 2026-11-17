@@ -26,6 +26,7 @@ import matplotlib  # noqa: E402
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
+from pillarfea.platform_info import awake  # noqa: E402
 from pillarfea import plotting as P  # noqa: E402
 from pillarfea.analysis import extract  # noqa: E402
 from pillarfea.config import load_config, set_dotted  # noqa: E402
@@ -101,6 +102,7 @@ def analytic_finite_strain(c):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--allow-sleep", action="store_true", help="let the computer sleep during the run (default: sleep is blocked)")
     ap.add_argument("--jobs", type=int, default=3)
     ap.add_argument("--threads", type=int, default=4)
     ap.add_argument("--only", nargs="*",
@@ -321,4 +323,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with awake("--allow-sleep" not in sys.argv):
+        main()

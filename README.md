@@ -130,6 +130,12 @@ case already solved anywhere is reused. Concurrent requests for the same case in
 process wait for a single solve. `--force` / *force re-run* bypasses the cache. Results from
 v0.1 (old key format) are migrated automatically on first use.
 
+**Sleep.** While a run, scan, sweep, validation or benchmark is in progress, idle system
+sleep is blocked (Windows `SetThreadExecutionState`, macOS `caffeinate`; no-op elsewhere)
+and released when it finishes. The screen may still turn off. Closing the lid can still
+sleep, depending on the Windows power settings. To let the computer sleep, untick
+*prevent sleep while running* in the UI, or pass `--allow-sleep` to the scripts.
+
 ### Computational cost
 CalculiX internally expands axisymmetric elements into a thin 3D wedge (2–3× the DOFs of
 a true 2D model). Benchmark of the representative case (≈1300 CAX8R elements,
@@ -357,7 +363,8 @@ curves (unit-tested on synthetic curves only).
   case's `crashes.log` and `solver_attempts`), and the benchmark never auto-selects a
   configuration that crashed. Genuine CalculiX errors are not retried.
 * Timings are only meaningful while the machine is awake; a laptop going to sleep during
-  the benchmark inflated one run from ≈5 min to 67 min.
+  the benchmark inflated one run from ≈5 min to 67 min. Idle sleep is now blocked
+  during runs (see *Sleep* above), but closing the lid can still suspend the machine.
 
 ## 7. Project layout
 

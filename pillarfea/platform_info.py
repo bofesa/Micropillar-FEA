@@ -86,6 +86,46 @@ class Solver:
 
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]
+_caffeinate = None  # macOS helper process while sleep is blocked
+
+
+def keep_awake(on: bool) -> bool:
+    """Block (on=True) or re-allow (on=False) idle system sleep. The display may still turn
+    off. Closing the lid or pressing the power button still sleeps if Windows is set to.
+    Windows: SetThreadExecutionState (call from a long-lived thread, e.g. the main thread).
+    macOS: `caffeinate -i`. Elsewhere: no-op. Returns True if sleep is now being blocked."""
+    global _caffeinate
+    if sys.platform == "win32":
+        import ctypes
+        ES_CONTINUOUS, ES_SYSTEM_REQUIRED = 0x80000000, 0x00000001
+        flags = ES_CONTINUOUS | (ES_SYSTEM_REQUIRED if on else 0)
+        return bool(ctypes.windll.kernel32.SetThreadExecutionState(flags)) and on
+    if sys.platform == "darwin":
+        import subprocess
+        if on and _caffeinate is None and shutil.which("caffeinate"):
+            _caffeinate = subprocess.Popen(["caffeinate", "-i", "-w", str(os.getpid())])
+        elif not on and _caffeinate is not None:
+            _caffeinate.terminate()
+            _caffeinate = None
+        return _caffeinate is not None
+    return False
+
+
+class awake:
+    """Context manager: `with awake(): ...` blocks idle sleep for the duration."""
+
+    def __init__(self, enabled: bool = True):
+        self.enabled = enabled
+
+    def __enter__(self):
+        if self.enabled and keep_awake(True):
+            print("(system sleep blocked while running; use --allow-sleep to disable)")
+        return self
+
+    def __exit__(self, *exc):
+        if self.enabled:
+            keep_awake(False)
+        return False
 
 
 def portable(text) -> str:

@@ -91,6 +91,7 @@ def plot_field(ax, mesh, frames: dict, k: int, field: str = "PEEQ", deformed: fl
                      els[:, [6, 3, 7]], els[:, [4, 5, 7]], els[:, [5, 6, 7]]])
     pn = np.unique(mesh.elements[mesh.elsets["PILLAR"]])
     vtrue = float(np.nanmax(v[np.unique(tri)]))
+    fixed = vmax is not None
     if vmax is None:
         vmax = max(float(np.nanpercentile(v[pn], clip_pct)), 1e-12)
     extend = "max" if vtrue > vmax * 1.0001 else "neither"
@@ -101,17 +102,16 @@ def plot_field(ax, mesh, frames: dict, k: int, field: str = "PEEQ", deformed: fl
     ax.set_aspect("equal")
     ax.grid(False)
     if zoom:
-        h = mesh.nodes[:, 1].max()
-        rb = mesh.nodes[mesh.nsets["PBASE"], 0].max()
-        ax.set_xlim(-zoom * rb, zoom * rb)
-        ax.set_ylim(-0.25 * h, 1.05 * h)
+        _zoom_window(ax, mesh, zoom, symmetric=True)
     ax.set_xlabel("r (µm)")
     ax.set_ylabel("z (µm)")
     cb = ax.figure.colorbar(m, ax=ax if cbar_ax is None else None, cax=cbar_ax, shrink=0.8,
                             extend=extend)
     cb.set_label(label)
-    if extend == "max":
-        ax.text(0.02, 0.98, f"scale clipped at {clip_pct:g}th pct.\nmax {vtrue:.3g} (corner)",
+    if extend == "max" or fixed:
+        note = (f"fixed scale, vmax = {vmax:.3g}" if fixed
+                else f"scale clipped at {clip_pct:g}th pct.") + f"\nmax {vtrue:.3g}"
+        ax.text(0.02, 0.98, note,
                 transform=ax.transAxes, va="top", ha="left", fontsize=7, color=INK2,
                 bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.85))
     cb.outline.set_visible(False)
@@ -125,12 +125,22 @@ def plot_mesh(ax, mesh, zoom: float | None = 1.6) -> None:
     ax.set_aspect("equal")
     ax.grid(False)
     if zoom:
-        h = mesh.nodes[:, 1].max()
-        rb = mesh.nodes[mesh.nsets["PBASE"], 0].max()
-        ax.set_xlim(0, zoom * rb)
-        ax.set_ylim(-0.25 * h, 1.05 * h)
+        _zoom_window(ax, mesh, zoom, symmetric=False)
     ax.set_xlabel("r (µm)")
     ax.set_ylabel("z (µm)")
+
+
+def _zoom_window(ax, mesh, zoom: float, symmetric: bool) -> None:
+    """View window that scales in both directions: zoom = half-width / foot radius.
+    The substrate depth shown grows with the zoom (1.6 reproduces the original framing:
+    0.25 h of substrate); the top stays at 1.05 h. Clipped to the model extent."""
+    h = mesh.nodes[:, 1].max()
+    rb = mesh.nodes[mesh.nsets["PBASE"], 0].max()
+    rmax, zmin = mesh.nodes[:, 0].max(), mesh.nodes[:, 1].min()
+    w = min(zoom * rb, rmax)
+    depth = max(0.25 * h, 0.25 * h + (zoom - 1.6) * rb * 1.2)
+    ax.set_xlim(-w if symmetric else 0, w)
+    ax.set_ylim(max(-depth, zmin), 1.05 * h)
 
 
 ANALYTICAL = [  # key, label, linestyle, marker

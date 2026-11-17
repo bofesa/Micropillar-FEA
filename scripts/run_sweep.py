@@ -19,11 +19,12 @@ import yaml  # noqa: E402
 
 from pillarfea import plotting as P  # noqa: E402
 from pillarfea.sweep import contact_label, run_sweep_file  # noqa: E402
-from pillarfea.platform_info import portable  # noqa: E402
+from pillarfea.platform_info import awake, portable  # noqa: E402
 
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--allow-sleep", action="store_true", help="let the computer sleep during the run (default: sleep is blocked)")
     ap.add_argument("sweep")
     ap.add_argument("--jobs", type=int, default=None)
     ap.add_argument("--force", action="store_true")
@@ -59,4 +60,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with awake("--allow-sleep" not in sys.argv):
+        main()

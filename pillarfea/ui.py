@@ -26,7 +26,7 @@ from matplotlib.figure import Figure  # noqa: E402
 from . import plotting as P  # noqa: E402
 from .config import get_dotted, load_config, resolve, save_config, set_dotted  # noqa: E402
 from .geometry import build_mesh, geometry_from_cfg  # noqa: E402
-from .platform_info import portable  # noqa: E402
+from .platform_info import keep_awake, portable  # noqa: E402
 from .simulate import load_frames, run_case  # noqa: E402
 from .sweep import result_row, run_cases, write_csv  # noqa: E402
 
@@ -118,6 +118,11 @@ TIPS = {
 }
 
 
+def _numtext(s: str) -> str:
+    """Accept '99,9' (decimal comma) and a trailing '%' in numeric entries."""
+    return s.strip().rstrip("%").strip().replace(",", ".")
+
+
 class Tooltip:
     """Minimal hover tooltip for Tk widgets."""
 
@@ -178,6 +183,16 @@ class App(tk.Tk):
 
     # ------------------------------------------------------------------ layout
     def _build(self):
+        # status bar across the bottom (packed first so it always keeps its space)
+        sb = ttk.Frame(self, padding=(6, 2))
+        sb.pack(side="bottom", fill="x")
+        ttk.Separator(self, orient="horizontal").pack(side="bottom", fill="x")
+        self.status = tk.StringVar(value="Ready.")
+        ttk.Label(sb, textvariable=self.status, foreground=P.INK2, anchor="w").pack(
+            side="left", fill="x", expand=True)
+        self.pbar = ttk.Progressbar(sb, mode="indeterminate", length=220)
+        self.pbar.pack(side="right", padx=(8, 0))
+
         left = ttk.Frame(self, padding=6)
         left.pack(side="left", fill="y")
         for title, fields in FORM:
@@ -206,10 +221,12 @@ class App(tk.Tk):
         bf.columnconfigure((0, 1), weight=1)
         self.force = tk.BooleanVar(value=False)
         ttk.Checkbutton(left, text="force re-run (ignore cache)", variable=self.force).pack(anchor="w")
-        self.status = tk.StringVar(value="Ready.")
-        ttk.Label(left, textvariable=self.status, wraplength=300, foreground=P.INK2).pack(anchor="w", pady=4)
-        self.pbar = ttk.Progressbar(left, mode="indeterminate")
-        self.pbar.pack(fill="x")
+        self.no_sleep = tk.BooleanVar(value=True)
+        cb = ttk.Checkbutton(left, text="prevent sleep while running", variable=self.no_sleep)
+        cb.pack(anchor="w")
+        Tooltip([cb], "Blocks idle system sleep while a run or scan is in progress\n"
+                      "(released when it finishes). The screen may still turn off.\n"
+                      "Closing the lid can still sleep, depending on Windows power settings.")
 
         nb = ttk.Notebook(self)
         nb.pack(side="right", fill="both", expand=True)
@@ -246,7 +263,23 @@ class App(tk.Tk):
         ttk.Entry(ctl, textvariable=self.zoom, width=5).pack(side="left")
         ttk.Label(ctl, text=" colour clip pct").pack(side="left")
         self.clip = tk.StringVar(value="99")
-        ttk.Entry(ctl, textvariable=self.clip, width=5).pack(side="left")
+        clip_entry = ttk.Entry(ctl, textvariable=self.clip, width=6)
+        clip_entry.pack(side="left")
+        Tooltip([clip_entry], "Colour-scale maximum as a percentile of the pillar's nodal values\n"
+                              "(0-100, decimals allowed, e.g. 99.9). Higher = smaller saturated\n"
+                              "region; 100 = true maximum (usually the singular corner).\n"
+                              "Ignored when vmax is set. Press Enter or 'redraw' to apply.")
+        ttk.Label(ctl, text=" vmax").pack(side="left")
+        self.vmax = tk.StringVar(value="")
+        vmax_entry = ttk.Entry(ctl, textvariable=self.vmax, width=7)
+        vmax_entry.pack(side="left")
+        Tooltip([vmax_entry], "Fixed colour-scale maximum in field units (PEEQ, or MPa for von Mises),\n"
+                              "e.g. 0.2 or 2500. Empty = use the percentile clip.\n"
+                              "A fixed value keeps the same scale across frames and cases;\n"
+                              "above the field maximum, nothing is saturated.")
+        for w in ctl.winfo_children():
+            if isinstance(w, ttk.Entry):
+                w.bind("<Return>", lambda e: self.draw_fields())
         ttk.Button(ctl, text="redraw", command=self.draw_fields).pack(side="left", padx=4)
         self.field.trace_add("write", lambda *a: self.draw_fields())
         self.fig_field, self.cv_field = self._canvas(t, (8, 6))
@@ -297,6 +330,8 @@ class App(tk.Tk):
         for title, fields in FORM:
             for key, label, kind in fields:
                 s = self.vars[key].get().strip()
+                if not isinstance(kind, list):
+                    s = _numtext(s)
                 try:
                     if isinstance(kind, list):
                         v = s
@@ -338,6 +373,8 @@ class App(tk.Tk):
             return
         self.busy = True
         self.run_btn.state(["disabled"])
+        if self.no_sleep.get():
+            keep_awake(True)
         self.pbar.start(12)
         self.t0 = time.time()
         self.status.set(label)
@@ -400,6 +437,7 @@ class App(tk.Tk):
                     continue
                 self.busy = False
                 self.run_btn.state(["!disabled"])
+                keep_awake(False)
                 self.pbar.stop()
                 if kind == "err":
                     e, tb = payload
@@ -467,11 +505,18 @@ class App(tk.Tk):
         self.fig_field.clear()
         ax = self.fig_field.add_subplot(111)
         try:
-            ds, zm, cp = float(self.defscale.get()), float(self.zoom.get()), float(self.clip.get())
-        except ValueError:
-            ds, zm, cp = 1.0, 1.6, 99.0
+            ds, zm, cp = (float(_numtext(x.get())) for x in (self.defscale, self.zoom, self.clip))
+            if not 0 < cp <= 100:
+                raise ValueError("colour clip must be in (0, 100]")
+            vs = _numtext(self.vmax.get())
+            vm = float(vs) if vs else None
+            if vm is not None and vm <= 0:
+                raise ValueError("vmax must be > 0")
+        except ValueError as e:
+            self.status.set(f"Field plot: invalid entry ({e}); using deform 1, zoom 1.6, clip 99")
+            ds, zm, cp, vm = 1.0, 1.6, 99.0, None
         P.plot_field(ax, self.mesh, self.frames, k, self.field.get(), deformed=ds,
-                     zoom=zm or None, clip_pct=cp)
+                     zoom=zm or None, clip_pct=cp, vmax=vm)
         t = self.frames["time"][k]
         eps = t * self.result["config"]["loading"]["max_strain"]
         ax.set_title(f"{self.field.get()} at nominal strain {eps * 100:.2f} % "
